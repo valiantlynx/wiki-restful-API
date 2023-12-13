@@ -2,3 +2,6 @@
 npm-debug.log
 .DS_Store
 /*.env
+.dist/
+.vscode/
+package-lock.json
