@@ -31,9 +31,6 @@
         <script>
         // Function to display server response
         function displayResponse(message, isError = false) {
-            console.log("message--->", message);
-            console.log("isError---->", isError);
-
             if  (isError) {
                 document.getElementById('response').classList.remove('bg-green-100', 'text-grey-500');
                 document.getElementById('response').innerText = message;
