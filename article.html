@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Node.js Wiki API Article</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="container mx-auto">
+        <button onclick="window.location.href='/'" class="bg-blue-500 text-white px-4 py-2 mb-8">Back to Main Page</button>
+        <div id="article" class="space-y-4">
+            <!-- Article details will be loaded here -->
+        </div>
+    </div>
+
+    <script>
+        function handleResponse(response) {
+            return response.text().then(text => {
+                return response.ok ? text : Promise.reject(text);
+            });
+        }
+
+        function loadArticle() {
+            const params = new URLSearchParams(window.location.search);
+            const title = params.get('title');
+
+            if (title) {
+                fetch(`/articles/${title}`)
+                .then(handleResponse)
+                .then(data => {
+                    const article = JSON.parse(data);
+                    const articleDiv = document.getElementById('article');
+                    articleDiv.innerHTML = `
+                        <h2 class="text-3xl font-bold">${article.title}</h2>
+                        <p>${article.content}</p>
+                    `;
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+            }
+        }
+
+        window.onload = loadArticle;
+    </script>
+
+</body>
+</html>

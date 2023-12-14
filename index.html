@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Node.js Wiki API UI</title>
+        <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    </head>
+    <body class="bg-gray-100 p-8">
+        <div class="container mx-auto">
+            <h1 class="text-3xl font-bold mb-8">Wiki Articles</h1>
+            <!-- Form for adding or updating articles -->
+            <div class="mb-8">
+                <input
+                    type="text"
+                    id="title"
+                    placeholder="Title"
+                    class="border p-2 w-full mb-4"
+                >
+                <textarea id="content" placeholder="Content" class="border p-2 w-full mb-4"></textarea>
+                <button onclick="addArticle()" class="bg-blue-500 text-white px-4 py-2">Add Article</button>
+                <button onclick="updateArticle()" class="bg-yellow-500 text-white px-4 py-2">Update Article</button>
+            </div>
+            <!-- Server response display -->
+            <h6 class="font-bold">Server Response:</h6>
+            <div id="response" class="mb-4 p-4  border border-gray-300 rounded-md"></div>
+            <!-- List of articles -->
+            <div id="articles" class="space-y-4">
+                <!-- Articles will be loaded here --></div>
+        </div>
+        <script>
+        // Function to display server response
+        function displayResponse(message, isError = false) {
+            console.log("message--->", message);
+            console.log("isError---->", isError);
+
+            if  (isError) {
+                document.getElementById('response').classList.remove('bg-green-100', 'text-grey-500');
+                document.getElementById('response').innerText = message;
+                document.getElementById('response').classList.add('bg-red-100', 'text-white-500');
+            } else {
+                document.getElementById('response').classList.remove('bg-red-100', 'text-white-500');
+                document.getElementById('response').innerText = message;
+                document.getElementById('response').classList.add('bg-green-100', 'text-grey-500');
+            }
+            
+        }
+
+        // Function to handle Fetch responses
+        function handleResponse(response) {
+            return response.text().then(text => {
+                return response.ok ? text : Promise.reject(text);
+            });
+        }
+
+        // Function to add a new article
+        function addArticle() {
+            const title = document.getElementById('title').value;
+            const content = document.getElementById('content').value;
+            fetch('/articles', { 
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, content })
+            })
+            .then(handleResponse)
+            .then(data => {
+                displayResponse(data);
+                loadArticles(); // Reload articles after adding
+            })
+            .catch(error => displayResponse(error, true));
+        }
+
+        // Function to update an article
+        function updateArticle() {
+            const title = document.getElementById('title').value;
+            const content = document.getElementById('content').value;
+            fetch(`/articles/${title}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, content })
+            })
+            .then(handleResponse)
+            .then(data => {
+                displayResponse(data);
+                loadArticles(); 
+            })
+            .catch(error => displayResponse(error, true));
+        }
+
+        // Function to delete an article
+        function deleteArticle(articleTitle) {
+            fetch(`/articles/${articleTitle}`, { method: 'DELETE' })
+            .then(handleResponse)
+            .then(data => {
+                displayResponse(data);
+                loadArticles();
+            })
+            .catch(error => displayResponse(error, true));
+        }
+
+        // Function to load all articles
+        // Function to load all articles
+        function loadArticles() {
+            fetch('/articles')
+            .then(handleResponse)
+            .then(data => {
+                const articles = JSON.parse(data);
+                const articlesDiv = document.getElementById('articles');
+                articlesDiv.innerHTML = '';
+                articles.forEach(article => {
+                    const articleDiv = document.createElement('div');
+                    articleDiv.classList.add('border', 'p-4', 'rounded');
+                    articleDiv.innerHTML = `
+                        <h3 class="text-xl font-bold cursor-pointer" onclick="window.location.href = 'article?title=${encodeURIComponent(article.title)}'">${article.title}</h3>
+                        <p>${article.content}</p>
+                        <button onclick="deleteArticle('${article.title}')" class="bg-red-500 text-white px-4 py-2 mt-4">Delete</button>
+                    `;
+                    articlesDiv.appendChild(articleDiv);
+                });
+            })
+            .catch(error => displayResponse(error, true));
+        }
+
+
+        // Load articles when the page loads
+        window.onload = loadArticles;
+        </script>
+    </body>
+</html>
